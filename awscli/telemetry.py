@@ -111,8 +111,12 @@ class CLISessionDatabaseConnection:
 
     def _ensure_host_id(self):
         cur = self.execute(self._CHECK_HOST_ID)
-        host_id_ct = cur.fetchone()[0]
-        if host_id_ct == 0:
+        host_id_ct = cur.fetchone()
+        if host_id_ct is None:
+            # Could not read from the database (e.g. timeout), so
+            # skip inserting the host id rather than raising.
+            return
+        if host_id_ct[0] == 0:
             self.execute(
                 self._INSERT_HOST_ID,
                 # Hardcode `0` as primary key to ensure
